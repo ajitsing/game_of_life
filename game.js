@@ -107,7 +107,7 @@ $(document).ready(function(){
     cellsToKill = []
   }
 
-  var grid = new Grid(25);
+  var grid = new Grid(40);
   grid.draw();
 
   $('.cell.dead').click(function(e) {
