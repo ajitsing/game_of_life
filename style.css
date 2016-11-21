@@ -1,0 +1,20 @@
+.cell {
+  height: 20px;
+  display: block;
+  width: 20px; border: groove;}
+
+  .alive {
+    background: yellow;
+  }
+
+  .dead {
+    background: white;
+  }
+
+  .red {
+    background: red;
+  }
+
+  .grid {
+    display: -webkit-inline-box;
+  }
