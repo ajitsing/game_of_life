@@ -1,34 +1,65 @@
 $(document).ready(function(){
-  var grid = function(size) {
-    for (var i=0; i < size; i++) {
-      $('.grid').append("<div class='col" + i + "'></div>")
-      for (var j=0; j < size; j++) {
-        $(".col" + i).append("<span class='cell dead'></span>")
+  var Grid = function(size) {
+    this.size = size;
+
+    this.draw = function() {
+      for (var i=0; i < size; i++) {
+        $('.grid').append("<div class='col" + i + "'></div>")
+        for (var j=0; j < size; j++) {
+          $(".col" + i).append("<span class='cell dead'></span>")
+        }
       }
     }
   }
 
-  grid(20);
+  var Cell = function(row, col) {
+    this.row = row;
+    this.col = col;
 
-  $('.cell.dead').click(function(e) {
-    $(this).addClass('alive');
-    $(this).removeClass('dead');
-  });
-
-  var findNeibhours = function(col, row) {
-    var rows = [row-1, row, row+1];
-    var cols = [col-1, col, col+1];
-    cells = [];
-
-    for(var i=0; i < rows.length; i++) {
-      for(var j=0; j < cols.length; j++) {
-        if(!(col === cols[j] && row === rows[i])) {
-          cells.push($('.col' + cols[j]).children()[rows[i]]);
-        }
-      }
+    var cell = function() {
+      return $($('.col' + col).children()[row]);
     }
 
-    return cells.filter(Boolean);
+    this.isAlive = function() {
+      return cell().hasClass('alive');
+    }
+
+    this.isDead = function() {
+      return cell().hasClass('dead');
+    }
+
+    this.isOnGrid = function() {
+      return $('.col' + col).children()[row] !== undefined;
+    }
+
+    this.bringToLife = function() {
+      cell().removeClass('dead');
+      cell().addClass('alive');
+    }
+
+    this.kill = function() {
+      cell().removeClass('alive');
+      cell().addClass('dead');
+    }
+
+    this.neibhours = function() {
+      var rows = [row-1, row, row+1];
+      var cols = [col-1, col, col+1];
+      cells = [];
+
+      for(var i=0; i < rows.length; i++) {
+        for(var j=0; j < cols.length; j++) {
+          if(!(col === cols[j] && row === rows[i])) {
+            var cell = new Cell(rows[i], cols[j])
+            if(cell.isOnGrid()) {
+              cells.push(cell);
+            }
+          }
+        }
+      }
+
+      return cells;
+    }
   }
 
   var Cells = function(cells) {
@@ -36,7 +67,19 @@ $(document).ready(function(){
 
     this.aliveCells = function() {
       return this.cells.filter(function(cell) {
-        return $(cell).hasClass('alive');
+        return cell.isAlive();
+      });
+    }
+
+    this.killAll = function() {
+      $.each(cells, function(index, cell){
+        cell.kill();
+      });
+    }
+
+    this.bringAllToLife = function() {
+      $.each(cells, function(index, cell){
+        cell.bringToLife();
       });
     }
   }
@@ -44,55 +87,35 @@ $(document).ready(function(){
   var cellsMovingToNextGen = []
   var cellsToKill = []
 
-  var bringToLife = function(cell) {
-    $(cell).removeClass('dead');
-    $(cell).addClass('alive');
-  }
-
-  var kill = function(cell) {
-    $(cell).removeClass('alive');
-    $(cell).addClass('dead');
-  }
-
   var startGame =function(){
-    console.log('game started!');
-    for(var j=0; j<20; j++){
-      for(var i=0; i<20; i++) {
-        var cell = $(".col" + i).children()[j];
-        var aliveCells = new Cells(findNeibhours(i, j)).aliveCells().length;
-        if($(cell).hasClass('alive') && (aliveCells < 2 || aliveCells > 3)) {
-          //kill(cell)
-          cellsToKill.push({col: i, row: j})
-        } else if($(cell).hasClass('dead') && aliveCells === 3) {
-          //bringToLife(cell)
-          cellsMovingToNextGen.push({col: i, row: j})
+    for(var j=0; j < grid.size; j++){
+      for(var i=0; i < grid.size; i++) {
+        var cell = new Cell(j, i);
+        var aliveCells = new Cells(cell.neibhours()).aliveCells().length;
+
+        if(cell.isAlive() && (aliveCells < 2 || aliveCells > 3)) {
+          cellsToKill.push(cell)
+        } else if(cell.isDead() && aliveCells === 3) {
+          cellsMovingToNextGen.push(cell)
         }
       }
     }
-    $.each(cellsToKill, function(index, cell){
-      kill($(".col" + cell.col).children()[cell.row])
-    });
-    $.each(cellsMovingToNextGen, function(index, cell){ bringToLife($(".col" + cell.col).children()[cell.row]) })
+
+    new Cells(cellsToKill).killAll();
+    new Cells(cellsMovingToNextGen).bringAllToLife();
     cellsMovingToNextGen = []
     cellsToKill = []
   }
 
-  $('.start-game').click(function(e) {
-    setInterval(startGame, 500);
+  var grid = new Grid(25);
+  grid.draw();
+
+  $('.cell.dead').click(function(e) {
+    $(this).addClass('alive');
+    $(this).removeClass('dead');
   });
 
-
-  //$('.start-game').click(function(e) {
-    //console.log('game started!');
-    //for(var i=0; i<40; i++) {
-      //$.each($(".col" + i).children(), function(row, cell) {
-        //var aliveCells = new Cells(findNeibhours(i, row)).aliveCells().length;
-        //if($(cell).hasClass('alive') && (aliveCells < 2 || aliveCells > 3)) {
-          //kill(cell)
-        //} else if($(cell).hasClass('dead') && aliveCells === 3) {
-          //bringToLife(cell)
-        //}
-      //});
-    //}
-  //});
+  $('.start-game').click(function(e) {
+    setInterval(startGame, 200);
+  });
 })();
