@@ -45,20 +45,20 @@ $(document).ready(function(){
     this.neibhours = function() {
       var rows = [row-1, row, row+1];
       var cols = [col-1, col, col+1];
-      cells = [];
+      neibhourCells = [];
 
       for(var i=0; i < rows.length; i++) {
         for(var j=0; j < cols.length; j++) {
           if(!(col === cols[j] && row === rows[i])) {
             var cell = new Cell(rows[i], cols[j])
             if(cell.isOnGrid()) {
-              cells.push(cell);
+              neibhourCells.push(cell);
             }
           }
         }
       }
 
-      return cells;
+      return neibhourCells;
     }
   }
 
@@ -87,7 +87,7 @@ $(document).ready(function(){
   var cellsMovingToNextGen = []
   var cellsToKill = []
 
-  var startGame =function(){
+  var play =function(){
     for(var j=0; j < grid.size; j++){
       for(var i=0; i < grid.size; i++) {
         var cell = new Cell(j, i);
@@ -116,6 +116,6 @@ $(document).ready(function(){
   });
 
   $('.start-game').click(function(e) {
-    setInterval(startGame, 200);
+    setInterval(play, 200);
   });
 })();
